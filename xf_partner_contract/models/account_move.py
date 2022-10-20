@@ -25,6 +25,22 @@ class AccountMove(models.Model):
     # Built-in methods overrides
     # Action methods
 
+    @api.model
+    def action_post(self):
+        """supering invoice confirming function for amount/uom deduction from contract"""
+        if self.invoice_line_ids and self.contract_id:
+            contract = self.contract_id
+            if contract.contract_amount_type == 'price':
+                contract.amount = contract.amount - self.amount_total
+                if contract.amount == 0:
+                    contract.state = 'expired'
+            elif contract.contract_amount_type == 'unit':
+                qty = self.invoice_line_ids.mapped('quantity')
+                contract.end_units = contract.end_units - sum(qty)
+                if contract.end_units == 0:
+                    contract.state = 'expired'
+        return super(AccountMove, self).action_post()
+
     def apply_contract(self):
         for move in self:
             if not move.contract_id:

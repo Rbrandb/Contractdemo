@@ -167,9 +167,9 @@
                         </group>
                         <group>
                             <group>
+                                <field name="amount_type_sett" invisible="1"/>
                                 <field name="contract_amount_type" attrs="{'required': [('amount_type_sett', '=', 'require')],
                                 'invisible': [('amount_type_sett', '=', 'no')]}"/>
-                                <field name="amount_type_sett" invisible="1"/>
                                 <field name="currency_id"
                                        attrs="{'readonly':[('can_edit', '!=', True)],
                                        'invisible': [('contract_amount_type', '!=', 'price')],

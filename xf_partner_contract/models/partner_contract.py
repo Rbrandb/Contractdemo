@@ -257,11 +257,13 @@ class PartnerContract(models.Model):
         """Setup domain for currency_id and unit_id fields based on settings"""
         if self.contract_amount_type == 'price':
             values = self.env['ir.config_parameter'].sudo().get_param('xf_partner_contract.contract_currency_ids')
-            return {'domain': {'currency_id': [('id', 'in', eval(values)),
+            if values:
+                return {'domain': {'currency_id': [('id', 'in', eval(values)),
                                        ]}}
         if self.contract_amount_type == 'unit':
             values = self.env['ir.config_parameter'].sudo().get_param('xf_partner_contract.contract_uom_ids')
-            return {'domain': {'unit_id': [('id', 'in', eval(values)),
+            if values:
+                return {'domain': {'unit_id': [('id', 'in', eval(values)),
                                        ]}}
 
     def compute_document_count(self):
@@ -529,15 +531,6 @@ class PartnerContract(models.Model):
             move = self.env['account.move'].create(invoice_vals)
             move.apply_contract_lines()
             moves |= move
-            if self.contract_amount_type == 'price':
-                self.amount = self.amount - move.amount_total
-                if self.amount == 0:
-                    self.state = 'expired'
-            elif self.contract_amount_type == 'unit':
-                qty = move.invoice_line_ids.mapped('quantity')
-                self.end_units = self.end_units - sum(qty)
-                if self.end_units == 0:
-                    self.state = 'expired'
         return self.action_view_invoice(moves)
 
     def action_view_invoice(self, invoices=False):
