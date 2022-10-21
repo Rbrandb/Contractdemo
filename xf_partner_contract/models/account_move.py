@@ -31,11 +31,15 @@ class AccountMove(models.Model):
         if self.invoice_line_ids and self.contract_id:
             contract = self.contract_id
             if contract.contract_amount_type == 'price':
+                if contract.amount - self.amount_total < 0:
+                    raise ValidationError(_('The bill amount is higher than contract amount'))
                 contract.amount = contract.amount - self.amount_total
                 if contract.amount == 0:
                     contract.state = 'expired'
             elif contract.contract_amount_type == 'unit':
                 qty = self.invoice_line_ids.mapped('quantity')
+                if contract.end_units - sum(qty) < 0:
+                    raise ValidationError(_('The bill quantity is higher than contract quantity'))
                 contract.end_units = contract.end_units - sum(qty)
                 if contract.end_units == 0:
                     contract.state = 'expired'
